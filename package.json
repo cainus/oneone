@@ -1,6 +1,6 @@
 {
       "name": "oneone",
-      "description" : "oneone is an http server library that aims to support common rfc2616 functionality",
+      "description" : "oneone is an http server library for node.js that aims to more completely support http 1.1",
       "keywords" : ["api", "rest", "http", "resource"], 
       "version": "0.1.0",
       "bugs": {

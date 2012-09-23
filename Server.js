@@ -2,10 +2,11 @@ var http = require('http');
 var https = require('https');
 var Router = require('detour').Router;
 
-var Server = function(port, protocol){
+var Server = function(port, protocol, resourcePath){
   this.port = port || 5000;
   this.protocol = protocol || 'http';
-  this.router = new Router('/');
+  this.resourcePath = resourcePath || '/';
+  this.router = new Router(this.resourcePath);
   this.coreServer = null;
   // TODO get resourcePath out of here, probably by getting it out of the router ctor
   var that = this;

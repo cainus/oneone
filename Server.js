@@ -1,31 +1,23 @@
-var Router = require('detour').Router;
 var http = require('http');
 var https = require('https');
-var EventEmitter = require('events').EventEmitter;
-var _ = require('underscore');
-var fs = require('fs');
+var Router = require('detour').Router;
 
-/*
-
-public interface?
-.route()
-.routeDirectory()
-.onRequest()
-.listen()
-.close()
-
-*/
-
-Server = function(options){
-  options = options || {};
+var Server = function(port, protocol){
+  this.port = port || 5000;
+  this.protocol = protocol || 'http';
+  this.router = new Router('/');
+  this.coreServer = null;
+  // TODO get resourcePath out of here, probably by getting it out of the router ctor
+  var that = this;
   this.handlers = {
-    404 : function($){ $.res.statusCode = 404;  $.res.end(); },
-    405 : function($){ $.res.statusCode = 405;  $.res.end(); },
-    414 : function($){ $.res.statusCode = 414;  $.res.end(); },
+    404 : function($){ $.res.statusCode = 404; $.res.end(); },
+    405 : function($){ $.res.statusCode = 405; $.res.end(); },
+    414 : function($){ $.res.statusCode = 414; $.res.end(); },
     500 : function($, err){ $.res.statusCode = 500;
                             console.log(err);
+                            console.log(err.stack);
                             $.res.end(); },
-    501 : function($){ $.res.statusCode = 501;  $.res.end(); },
+    501 : function($){ $.res.statusCode = 501; $.res.end(); },
     OPTIONS : function(resource){
                 var methods = getMethods(resource);
                 resource.OPTIONS = function($){
@@ -36,65 +28,36 @@ Server = function(options){
                 return resource;
               }
   };
-  this.server = null;
-  this.options = options;
-  this.options.port = this.options.port || 3000;
-  this.options.protocol = this.options.protocol || 'http';
-  this.options.resourcePath = this.options.resourcePath || '/';
-  this.port = this.options.port;
-  this.protocol = this.options.protocol;
-  this.resourcePath = this.options.resourcePath;
-  this.router = new Router(this.resourcePath);
-  var router = this.router;
-  var protocol = this.protocol;
-  var that = this;
-  this.onRequestHandler = function(handler, context, cb){
-    cb(context);  // do nothing with it by default
-  };
-  router.onRequest = function(handler, context, cb){
-    context.app = that.options;
-    context.router = router;
-    var req = context.req;
-    var res = context.res;
-    that.onRequestHandler(handler, context, function(context){
-      cb(null, context);
-    });
-  };
-  router.setResourceDecorator(function(resource){
+  this.router.setResourceDecorator(function(resource){
     // set the OPTIONS method at route-time, so the router won't 405 it.
     resource = that.handlers.OPTIONS(resource);
     return resource;
   });
-  router.on404(function($){
+  this.router.on404(function($){
     that.handlers['404']($);
   });
-  router.on414(function($){
+  this.router.on414(function($){
     that.handlers['414']($);
   });
-  router.on500(function($, err){
+  this.router.on500(function($, err){
     that.handlers['500']($, err);
   });
-  router.on501(function($){
+  this.router.on501(function($){
     that.handlers['501']($);
   });
-  router.on405(function($){
+  this.router.on405(function($){
     that.handlers['405']($);
   });
-};
-
-Server.prototype = Object.create(EventEmitter.prototype);
-
-Server.prototype.route = function(path, handler){
-  return this.router.route(path, handler);
-};
-
-Server.prototype.onRequest = function(handler){
-  this.onRequestHandler = handler;
-};
-
-// run the directory router and call the callback afterward
-Server.prototype.routeDirectory = function(directory, cb){
-  this.router.routeDirectory(directory, cb);
+  // set the default request handler.  
+  // onRequest() (below) can be used to overwrite this though
+  this.onRequestHandler = function(resource, context, cb){
+    cb(null, context);  // do nothing with it by default
+  };
+  // hook the request handler into the router
+  this.router.onRequest = function(resource, context, cb){
+    context.router = that.router;
+    that.onRequestHandler(resource, context, cb);
+  };
 };
 
 Server.prototype.on404 = function(handler){
@@ -118,49 +81,53 @@ Server.prototype.on414 = function(handler){
   this.handlers['414'] = handler;
 };
 Server.prototype.onOPTIONS = function(handler){
-  // the handler should be a function that takes a resource
+  // the handler should be a function that takes a *resource*
   // this should be called BEFORE routing.
   this.handlers.OPTIONS = handler;
 };
 
-/*
-// TODO have a server.on414(), etc for every type that the router supports
-// default responses can just be body-less
-
-  router.on500(function(context, ex){
-    console.log("===============================");
-    console.log("Uncaught Exception");
-    console.log(ex);
-    console.log(context.req.method, ' ', context.req.url);
-    console.log(ex.stack);
-    statusman.createResponder(context.req, context.res).internalServerError();
-  });
-
-
+Server.prototype.route = function(path, handler){
+  return this.router.route(path, handler);
 };
-*/
+
+Server.prototype.freeRoute = function(path, handler){
+  return this.router.freeRoute(path, handler);
+};
+
+Server.prototype.staticRoute = function(dir, cb){
+  this.router.staticRoute(dir, cb);
+};
+
+// run the directory router and call the callback afterward
+Server.prototype.routeDirectory = function(directory, cb){
+  this.router.routeDirectory(directory, cb);
+};
+
+
+Server.prototype.onRequest = function(handler){
+  this.onRequestHandler = handler;
+};
 
 Server.prototype.listen = function(cb){
   var that = this;
   var router = this.router;
   var protocolLibrary = this.protocol === 'https' ? https : http;
-  var server = protocolLibrary.createServer(function(req, res){
+  var coreServer = protocolLibrary.createServer(function(req, res){
       router.dispatch({req : req, res : res});
   });
-  server.listen(that.port, cb);
-  that.server = server;
+  coreServer.listen(that.port, cb);
+  that.coreServer = coreServer;
 };
 
 Server.prototype.close = function(cb){
-  this.server.close(cb);
+  this.coreServer.close(cb);
 };
 
 module.exports = Server;
 
 
-
 var getMethods = function(resource){
-  var serverSupportedMethods = ["GET", "POST", 
+  var serverSupportedMethods = ["GET", "POST",
                                 "PUT", "DELETE",
                                 "HEAD", "OPTIONS"];
   var moduleMethods = _.functions(resource);

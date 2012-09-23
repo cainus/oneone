@@ -14,24 +14,22 @@ var Server = require('./Server');
 // TODO better way to see all routes
 
 
-var app = {
-  protocol : 'http',
-  resourcePath : '/api',
-  staticDir : __dirname + '/test/test_fixtures/static',
-  port : 8080
-};
-var server = new Server(app);
+var server = new Server(8080);
 server.onRequest(function(handler, context, cb){
   console.log(' <-- ', context.req.method, ' ', context.req.url);
-  cb(context);
+  cb(null, context);
 });
 
 var resourceDir = __dirname + '/test/test_fixtures/resources';
+server.staticRoute(__dirname + '/test/test_fixtures/static', function(){
+  console.log("statically routed!");
+});
 server.routeDirectory(resourceDir, function(err){
   console.log("routed resources in " + resourceDir);
 
   server.route('/inside', 
                       { GET : function($){ 
+                                console.log("hideyho");
                                 $.res.end("muahahah!"); 
                               }
                       }).as('inside');
@@ -41,14 +39,6 @@ server.routeDirectory(resourceDir, function(err){
     console.log(err);
     return;
   }
-  server.on("response", function(data){
-    console.log("response");
-    console.log(data);
-  });
-  server.on("errorResponse", function(data){
-    console.log("error response");
-    console.log(data.req.method, data.req.url, data.type, data.message, data.detail);
-  });
   server.listen(function(err){
     if (err) {console.log(err);throw err;}
     console.log('Server running on ' + server.port);

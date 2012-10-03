@@ -1,14 +1,14 @@
 var http = require('http');
 var https = require('https');
 var Router = require('detour').Router;
+var _ = require('underscore');
 
 var Server = function(port, protocol, resourcePath){
   this.port = port || 5000;
   this.protocol = protocol || 'http';
   this.resourcePath = resourcePath || '/';
-  this.router = new Router(this.resourcePath);
+  this.router = new Router();
   this.coreServer = null;
-  // TODO get resourcePath out of here, probably by getting it out of the router ctor
   var that = this;
   this.handlers = {
     404 : function($){ $.res.statusCode = 404; $.res.end(); },
@@ -100,8 +100,8 @@ Server.prototype.staticRoute = function(dir, cb){
 };
 
 // run the directory router and call the callback afterward
-Server.prototype.routeDirectory = function(directory, cb){
-  this.router.routeDirectory(directory, cb);
+Server.prototype.routeDirectory = function(directory, path, cb){
+  this.router.routeDirectory(directory, path, cb);
 };
 
 

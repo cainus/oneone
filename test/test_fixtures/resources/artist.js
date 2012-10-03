@@ -10,12 +10,9 @@ exports.handler = {
   GET : function($){
     var out = { artist : [] };
     _.each(artists, function(v, k){
-      var self = $.uri.get('artist*', {'artist' : k});
-      var item = _.extend({ _links : { self : {href : self } }}, v);
-      out.artist.push(item);
+      out.artist.push(v);
     });
-    out._links = $.uri.links();
-    $.repr(out);
+    $.res.end(JSON.stringify(out));
   }
 };
 

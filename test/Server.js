@@ -1,7 +1,7 @@
 var should = require('should');
 var hottap = require('hottap').hottap;
 var _ = require('underscore');
-var Server = require('../index').Server;
+var Server = require('../index');
 
 
 function closeServer(server, cb){

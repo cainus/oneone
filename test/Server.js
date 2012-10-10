@@ -29,12 +29,12 @@ describe('Server', function(){
   });
 
   it("has default error handlers for 404s", function(done){
-      var that = this;
-      var url = "http://localhost:3000/DOES_NOT_EXIST";
-      this.server = new Server(3000);
-      this.server.route('/', {  GET : function($){
-                                               $.res.end("Hello World!");
-                                             }});
+    var that = this;
+    var url = "http://localhost:3000/DOES_NOT_EXIST";
+    this.server = new Server(3000);
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
     this.server.listen(function(err){
       if (err) {
         console.log("listen err: ", err);
@@ -48,13 +48,77 @@ describe('Server', function(){
                                });
     });
   });
+  it("sets the server header by default", function(done){
+    var that = this;
+    var url = "http://localhost:3000/";
+    this.server = new Server(3000);
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
+    this.server.listen(function(err){
+      if (err) {
+        console.log("listen err: ", err);
+        throw err;
+      }
+      hottap(url).request("DELETE",
+                               function(err, response){
+                                 response.headers.server.should.equal("oneone server");
+                                 should.not.exist(err);
+                                 done();
+                               });
+    });
+  });
+
+  it("allows override of server header", function(done){
+    var that = this;
+    var url = "http://localhost:3000/";
+    this.server = new Server(3000);
+    this.server.setDefaultResponseHeader('server', 'IIS 4.0 WIN NT. Fo realz');
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
+    this.server.listen(function(err){
+      if (err) {
+        console.log("listen err: ", err);
+        throw err;
+      }
+      hottap(url).request("DELETE",
+                               function(err, response){
+                                 response.headers.server.should.equal("IIS 4.0 WIN NT. Fo realz");
+                                 should.not.exist(err);
+                                 done();
+                               });
+    });
+  });
+  it("allows setting default response headers", function(done){
+    var that = this;
+    var url = "http://localhost:3000/";
+    this.server = new Server(3000);
+    this.server.setDefaultResponseHeader('X-Made-this-up', '1337');
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
+    this.server.listen(function(err){
+      if (err) {
+        console.log("listen err: ", err);
+        throw err;
+      }
+      hottap(url).request("DELETE",
+                               function(err, response){
+                                 response.headers['x-made-this-up'].should.equal("1337");
+                                 should.not.exist(err);
+                                 done();
+                               });
+    });
+  });
+
   it("has default error handlers for 405s", function(done){
-      var that = this;
-      var url = "http://localhost:3000/";
-      this.server = new Server(3000);
-      this.server.route('/', {  GET : function($){
-                                               $.res.end("Hello World!");
-                                             }});
+    var that = this;
+    var url = "http://localhost:3000/";
+    this.server = new Server(3000);
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
     this.server.listen(function(err){
       if (err) {
         console.log("listen err: ", err);
@@ -69,12 +133,12 @@ describe('Server', function(){
     });
   });
   it("has default error handlers for 501s", function(done){
-      var that = this;
-      var url = "http://localhost:3000/";
-      this.server = new Server(3000);
-      this.server.route('/', {  GET : function($){
-                                               $.res.end("Hello World!");
-                                             }});
+    var that = this;
+    var url = "http://localhost:3000/";
+    this.server = new Server(3000);
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
     this.server.listen(function(err){
       if (err) {
         console.log("listen err: ", err);
@@ -89,14 +153,14 @@ describe('Server', function(){
     });
   });
   it("has a default error handler for 414s", function(done){
-      var that = this;
-      var bigpath = "1";
-      _.times(4097, function(){bigpath += '1';});
-      var url = "http://localhost:3000/" + bigpath;
-      this.server = new Server(3000);
-      this.server.route('/', {  GET : function($){
-                                               $.res.end("Hello World!");
-                                             }});
+    var that = this;
+    var bigpath = "1";
+    _.times(4097, function(){bigpath += '1';});
+    var url = "http://localhost:3000/" + bigpath;
+    this.server = new Server(3000);
+    this.server.route('/', {  GET : function($){
+                                             $.res.end("Hello World!");
+                                           }});
     this.server.listen(function(err){
       if (err) {
         console.log("listen err: ", err);

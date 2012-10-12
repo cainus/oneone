@@ -11,7 +11,31 @@ It has only a few simple goals:
 * handle routing
 * make extension possible and easy
 
-It should be possible to use oneone as the basis of a framework.  
+It should be possible to use oneone as the basis of a framework. 
+
+### A Hello World Example:
+```javascript
+var Server = require('oneone');
+
+var server = new Server(8080);
+
+server.onRequest(function(handler, context, cb){
+  console.log(' <-- ', context.req.method, ' ', context.req.url);
+  cb(null, context);
+});
+
+server.route('/hello', { GET : function($){ 
+                                 console.log("hideyho");
+                                 $.res.end("hideyho"); 
+                               }
+                        });
+
+server.listen(function(err){
+  if (err) {console.log(err);throw err;}
+  console.log(server.router.routes);
+  console.log('Server running on ' + server.port);
+});
+```
 
 ## Automated Tests:
 npm test

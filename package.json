@@ -2,7 +2,7 @@
       "name": "oneone",
       "description" : "oneone is an http server library for node.js that aims to more completely support http 1.1",
       "keywords" : ["api", "rest", "http", "resource", "https", "server"], 
-      "version": "0.4.4",
+      "version": "0.4.5",
       "bugs": {
        "url": "https://github.com/cainus/oneone/issues"
       },

@@ -1,6 +1,8 @@
 # oneone
 [![Build
 Status](https://secure.travis-ci.org/cainus/oneone.png?branch=master)](http://travis-ci.org/cainus/oneone)
+[![Coverage Status](https://coveralls.io/repos/cainus/oneone/badge.png?branch=master)](https://coveralls.io/r/cainus/oneone)
+[![NPM version](https://badge.fury.io/js/oneone.png)](http://badge.fury.io/js/oneone)
 
 oneone is an http server library for node.js that aims to more completely support http 1.1  
 

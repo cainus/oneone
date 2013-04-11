@@ -1,5 +1,5 @@
 var _ = require('underscore');
-var Server = require('./Server');
+var Server = require('./lib/Server');
 
 var server = new Server(8080);
 server.onRequest(function(handler, context, cb){

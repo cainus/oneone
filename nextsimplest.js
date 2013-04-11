@@ -1,4 +1,4 @@
-var Server = require('./Server');
+var Server = require('./lib/Server');
 
 var server = new Server();
 server.routeDirectory(__dirname + '/resources', '/', function(err){

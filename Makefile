@@ -9,4 +9,9 @@ test-cov:	lib-cov
 	@ONEONE_COVERAGE=1 $(MAKE) test REPORTER=html-cov > coverage.html
 	rm -rf lib-cov
 
-.PHONY: test 
+test-coveralls:	lib-cov
+	echo TRAVIS_JOB_ID $(TRAVIS_JOB_ID)
+	@ONEONE_COVERAGE=1 $(MAKE) test REPORTER=mocha-lcov-reporter | ./node_modules/coveralls/bin/coveralls.js
+	rm -rf lib-cov
+
+.PHONY: test

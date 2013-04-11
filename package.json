@@ -21,26 +21,28 @@
     "test": "make test-coveralls"
   },
   "maintainers": [
-    {
-      "name": "Gregg Caines",
-      "email": "gregg@caines.ca",
-      "web": "http://caines.ca"
-    }
+    "Gregg Caines <gregg@caines.ca> (http://caines.ca)"
   ],
   "dependencies": {
-    "underscore" : "1.3.3",
-    "detour" : "0.16.6",
-    "coveralls" : "2.0.6",
-    "mocha-lcov-reporter" : "0.0.1",
-    "jscoverage" : "0.3.6"
+    "underscore": "1.3.3",
+    "detour": "0.16.6"
   },
   "devDependencies": {
+    "mocha-lcov-reporter": "0.0.1",
+    "jscoverage": "0.3.6",
     "mockery": "1.1.2",
     "hottap": "1.0.0",
-    "mocha": "1.3.2",
-    "should": "1.1.0"
+    "mocha": "1.9.0",
+    "should": "1.1.0",
+    "coveralls": "2.0.6"
   },
   "engine": {
     "node": ">=0.8.6"
-  }
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "author": "Gregg Caines",
+  "license": "BSD"
 }

@@ -1,7 +1,13 @@
 var _ = require('underscore');
 var Server = require('./lib/Server');
+var fs = require('fs');
 
-var server = new Server(8080);
+var server = new Server({
+  port : 8080, 
+  protocol : 'http',
+  //key: fs.readFileSync('./key.pem'),
+  //cert: fs.readFileSync('./key-cert.pem')
+});
 server.onRequest(function(handler, context, cb){
   console.log(' <-- ', context.req.method, ' ', context.req.url);
   cb(null, context);

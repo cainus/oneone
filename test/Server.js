@@ -1,5 +1,7 @@
 var should = require('should');
+var fs = require('fs');
 var hottap = require('hottap').hottap;
+var https = require('https');
 var _ = require('underscore');
 var Server = require('../index');
 
@@ -32,7 +34,7 @@ describe('Server', function(){
   it("has default error handlers for 404s", function(done){
     var that = this;
     var url = "http://localhost:3000/DOES_NOT_EXIST";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -52,7 +54,7 @@ describe('Server', function(){
   it("sets the server header by default", function(done){
     var that = this;
     var url = "http://localhost:3000/";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -73,7 +75,7 @@ describe('Server', function(){
   it("allows override of server header", function(done){
     var that = this;
     var url = "http://localhost:3000/";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.setDefaultResponseHeader('server', 'IIS 4.0 WIN NT. Fo realz');
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
@@ -94,7 +96,7 @@ describe('Server', function(){
   it("allows setting default response headers", function(done){
     var that = this;
     var url = "http://localhost:3000/";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.setDefaultResponseHeader('X-Made-this-up', '1337');
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
@@ -116,7 +118,7 @@ describe('Server', function(){
   it("has default error handlers for 405s", function(done){
     var that = this;
     var url = "http://localhost:3000/";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -136,7 +138,7 @@ describe('Server', function(){
   it("has default error handlers for 501s", function(done){
     var that = this;
     var url = "http://localhost:3000/";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -158,7 +160,7 @@ describe('Server', function(){
     var bigpath = "1";
     _.times(4097, function(){bigpath += '1';});
     var url = "http://localhost:3000/" + bigpath;
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -179,7 +181,7 @@ describe('Server', function(){
   it ("exposes an onRequest hook for additionally handling requests", function(done){
     var that = this;
     var url = "http://localhost:3000/";
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World! " + $.decorated);
                                            }});
@@ -203,7 +205,7 @@ describe('Server', function(){
 
   it ("can respond to simple requests", function(done){
     var that = this;
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -226,7 +228,7 @@ describe('Server', function(){
 
   it ("adds a router reference to every context", function(done){
     var that = this;
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              //should.exist($.router);
                                              $.res.end("Hello World!");
@@ -249,7 +251,7 @@ describe('Server', function(){
 
   it ("HEAD for a GET-only resource returns the same headers, blank resource", function(done){
     var that = this;
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                        $.res.setHeader('Content-Type', 'text/plain');
                                        $.res.end('yo yo yo');
@@ -274,7 +276,7 @@ describe('Server', function(){
 
   it ("OPTIONS for a GET-only resource returns, GET, HEAD, OPTIONS", function(done){
     var that = this;
-    this.server = new Server('0.0.0.0', 3000);
+    this.server = new Server({hostname : '0.0.0.0', port : 3000});
     this.server.route('/', {  GET : function($){
                                              $.res.end("Hello World!");
                                            }});
@@ -314,7 +316,7 @@ describe('Server', function(){
     it ("can override the default port", function(done){
       var that = this;
       var port = 3001;  // set non-default here
-      this.server = new Server(port);
+      this.server = new Server({hostname : '0.0.0.0', port : port});
       this.server.route('/', {  GET : function($){
                                       $.res.end("Hello World!");
                                 }});
@@ -331,6 +333,47 @@ describe('Server', function(){
                                     response.status.should.equal(200);
                                     done();
                                  });
+      });
+    });
+    it ("can create an https server", function(done){
+      var that = this;
+      this.server = new Server({
+        port : 4343, 
+        protocol : 'https',
+        key: fs.readFileSync(__dirname + '/../key.pem'),
+        cert: fs.readFileSync(__dirname + '/../key-cert.pem')
+      });
+      this.server.route('/', {  GET : function($){
+                                      $.res.end("Hello World!");
+                                }});
+      this.server.listen(function(err){
+        if (err) {
+          throw err;
+        }
+        var url = "https://localhost:" + that.server.port + "/";
+        var req = https.request({ 
+          host: 'localhost', 
+          port: 4343,
+          path: '/',
+          method: 'GET',
+          rejectUnauthorized: false,
+          requestCert: true,
+          agent: false
+        }, function(res) {
+          var data = '';
+          res.on('data', function(d) {
+            data += d;
+          });
+          res.on('error', function(err){ throw err; });
+          res.on('end', function(d) {
+            res.statusCode.should.equal(200);
+            data.should.equal("Hello World!");
+            done();
+          });
+        });
+        req.end();
+
+        req.on('error', function(err){ throw err; });
       });
     });
   });
